@@ -311,7 +311,6 @@
     });
   }
 
-  // Header positioning + compliance
   var posEl = document.getElementById('positioning');
   posEl.textContent = state.positioning;
   bindEd(posEl, state, 'positioning');
@@ -319,7 +318,6 @@
   compEl.textContent = state.compliance;
   bindEd(compEl, state, 'compliance');
 
-  // Tabs
   var tabs = document.querySelectorAll('.tab');
   tabs.forEach(function(t){
     t.addEventListener('click', function(){
@@ -331,7 +329,6 @@
     });
   });
 
-  // ---------- OVERVIEW ----------
   function renderOverview(){
     var c = document.getElementById('ov-cards');
     c.innerHTML = '';
@@ -353,7 +350,6 @@
     state.ovCards.push({t:'New card', b:'Describe it…'}); save(); renderOverview();
   });
 
-  // ---------- SERVICES ----------
   function renderServices(){
     var c = document.getElementById('svc-tiers');
     c.innerHTML = '';
@@ -398,7 +394,6 @@
     state.tiers.push({label:'New tier', color:'#2b6a9e', items:[]}); save(); renderServices();
   });
 
-  // ---------- SWOT ----------
   function renderSwot(){
     var s = document.getElementById('sw-s');
     s.innerHTML = '';
@@ -438,7 +433,6 @@
     state.weaknesses.push({w:'New weakness…', f:'Fix: …'}); save(); renderSwot();
   });
 
-  // ---------- BRANDING ----------
   var brStrategyEl = document.getElementById('br-strategy');
   brStrategyEl.textContent = state.brStrategy;
   bindEd(brStrategyEl, state, 'brStrategy');
@@ -510,7 +504,6 @@
     state.brChecks.push({t:'New checklist item', done:false}); save(); renderChecks();
   });
 
-  // ---------- ROADMAP ----------
   var ORDER = ['todo','prog','done'];
   var LABEL = {todo:'To Do', prog:'In Progress', done:'Done'};
 
@@ -573,14 +566,12 @@
     state.phases.push({title:'New phase', steps:[]}); save(); renderRoadmap();
   });
 
-  // ---------- NOTES ----------
   document.querySelectorAll('textarea.notes').forEach(function(ta){
     var key = ta.dataset.n;
     ta.value = state.notes[key] || '';
     ta.addEventListener('input', function(){ state.notes[key] = ta.value; save(); });
   });
 
-  // ---------- RESET ----------
   document.getElementById('reset').addEventListener('click', function(){
     if (confirm('Reset everything to the original content? Your edits will be lost.')){
       state = JSON.parse(JSON.stringify(DEFAULTS));
