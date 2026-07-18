@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tourism Growth — Strategy Dashboard</title>
+<style>
+  :root{
+    --navy:#12324f; --navy2:#1c4568; --blue:#2b6a9e; --sky:#eaf1f7;
+    --terra:#c96a4a; --terra-soft:#f6e8e2; --sand:#f7f3ee; --ink:#22303c;
+    --muted:#6b7a88; --line:#dfe6ec; --green:#2e7d5b; --green-soft:#e2f0ea;
+    --amber:#b07a1f; --amber-soft:#f7edd8; --card:#ffffff; --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--sand);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px 64px}
+
+  header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 60%,#26547a 100%);color:#fff;padding:28px 16px 20px}
+  .hwrap{max-width:1080px;margin:0 auto}
+  .kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#a8c3da;margin-bottom:6px}
+  h1{font-size:clamp(20px,4vw,28px);font-weight:700;letter-spacing:-.01em}
+  .positioning{margin-top:12px;background:rgba(255,255,255,.08);border-left:3px solid var(--terra);padding:12px 14px;border-radius:0 10px 10px 0;font-size:clamp(14px,2.5vw,16px);font-style:italic;color:#eef4f9}
+  .progress-block{margin-top:16px}
+  .progress-label{display:flex;justify-content:space-between;font-size:12px;color:#b9cddd;margin-bottom:5px}
+  .bar{height:8px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--terra),#e2946f);border-radius:99px;transition:width .4s ease}
+
+  nav{position:sticky;top:0;z-index:20;background:var(--sand);border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
+  .tabs{max-width:1080px;margin:0 auto;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;background:none;border:none;font:inherit;font-size:13.5px;font-weight:600;color:var(--muted);padding:13px 14px 11px;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap}
+  .tab.active{color:var(--navy);border-bottom-color:var(--terra)}
+  .tab:hover{color:var(--navy)}
+
+  section.panel{display:none;padding-top:20px}
+  section.panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .grid{display:grid;gap:14px}
+  @media(min-width:760px){.grid.g2{grid-template-columns:1fr 1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;position:relative}
+  .card h3{font-size:15px;color:var(--navy);margin-bottom:10px}
+  .card p,.card li{font-size:13.5px;color:#3c4a57}
+
+  .hint{font-size:12px;color:var(--muted);background:#eef3f7;border-radius:8px;padding:8px 12px;margin-bottom:14px}
+
+  .ed{border-radius:4px;transition:background .12s;min-width:20px;display:inline-block}
+  .ed:hover{background:#eef4fa;outline:1px dashed #b9cddd;cursor:text}
+  .ed:focus{outline:2px solid var(--blue);background:#fff}
+  .ed:empty::before{content:"…";color:#b9c5cf}
+
+  .del{position:absolute;top:8px;right:8px;width:22px;height:22px;border:none;border-radius:50%;background:#f2f5f8;color:#9aa8b4;font-size:13px;line-height:1;cursor:pointer;font-family:inherit}
+  .del:hover{background:#fbe9e3;color:var(--terra)}
+  .del.inline{position:static;flex:0 0 auto;margin-left:6px}
+  .addbtn{width:100%;border:1.5px dashed #c6d0d9;background:none;border-radius:10px;padding:9px;font:inherit;font-size:13px;font-weight:600;color:var(--blue);cursor:pointer;margin-top:10px}
+  .addbtn:hover{border-color:var(--blue);background:#f4f8fb}
+
+  .note-compliance{background:var(--amber-soft);border:1px solid #e8d6a8;border-radius:10px;padding:12px 14px;font-size:13px;color:#6d4f14;margin-top:14px}
+
+  .tier{border-left:4px solid var(--blue);margin-bottom:14px}
+  .tierlabel{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-right:28px}
+  .svc{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;position:relative}
+  .svc:last-of-type{margin-bottom:0}
+  .svc h4{font-size:14px;color:var(--navy);margin-bottom:4px;padding-right:24px}
+  .svc p{font-size:13px;color:#3c4a57}
+  .svc .tag{margin-top:6px}
+
+  .tag{display:inline-block;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--sky);color:var(--blue)}
+
+  .swot-s{border-top:4px solid var(--green)}
+  .swot-w{border-top:4px solid var(--terra)}
+  .item-row{display:flex;align-items:flex-start;gap:6px;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .item-row:last-of-type{border-bottom:none}
+  .item-row .body{flex:1;font-size:13.5px}
+  .item-row .fix{font-size:12.5px;color:var(--green);margin-top:3px}
+
+  .check{display:flex;align-items:flex-start;gap:10px;padding:9px 4px;border-bottom:1px solid #f0f3f6}
+  .check:last-of-type{border-bottom:none}
+  .check .box{width:19px;height:19px;border:2px solid #b9c5cf;border-radius:6px;flex:0 0 auto;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;cursor:pointer;transition:.15s}
+  .check.done .box{background:var(--green);border-color:var(--green)}
+  .check.done .txt{color:var(--muted);text-decoration:line-through}
+  .check .txt{font-size:13.5px;flex:1}
+
+  .phase{margin-bottom:16px}
+  .phase-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
+  .phase-h h3{font-size:14px;color:var(--navy);margin:0;flex:1}
+  .phase-h .count{font-size:11.5px;color:var(--muted);flex:0 0 auto}
+  .step{display:flex;align-items:flex-start;gap:10px;padding:10px 2px;border-bottom:1px solid #f0f3f6}
+  .step:last-of-type{border-bottom:none}
+  .step .num{width:24px;height:24px;border-radius:50%;background:var(--sky);color:var(--blue);font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px}
+  .step .txt{font-size:13.5px;flex:1;padding-top:2px}
+  .step .status{flex:0 0 auto;font-size:11px;font-weight:700;border:none;border-radius:99px;padding:5px 10px;cursor:pointer;font-family:inherit}
+  .status.todo{background:#eef1f4;color:var(--muted)}
+  .status.prog{background:var(--amber-soft);color:var(--amber)}
+  .status.done{background:var(--green-soft);color:var(--green)}
+  .step.s-done .txt{color:var(--muted);text-decoration:line-through}
+
+  textarea.notes{width:100%;min-height:84px;margin-top:16px;border:1px dashed #c6d0d9;border-radius:10px;padding:10px 12px;font:inherit;font-size:13px;color:var(--ink);background:#fdfcfa;resize:vertical}
+  textarea.notes:focus{outline:none;border-color:var(--blue)}
+  .notes-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:18px}
+
+  .kv-row{display:flex;gap:10px;padding:4px 0;font-size:13.5px;align-items:flex-start}
+  .kv-row .k{font-weight:700;color:var(--navy);min-width:74px}
+  .kv-row .v{flex:1;color:#3c4a57}
+  .brandname{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;font-size:13.5px}
+  .brandname.fav{border-color:var(--terra);background:var(--terra-soft)}
+  .brandname .star{cursor:pointer;color:#c6d0d9;font-size:16px;flex:0 0 auto}
+  .brandname.fav .star{color:var(--terra)}
+  .brandname .nm{flex:1}
+  h2.sec{font-size:17px;color:var(--navy);margin:0 0 12px}
+  footer{text-align:center;font-size:11.5px;color:var(--muted);margin-top:36px}
+  footer button{border:none;background:none;font:inherit;font-size:11.5px;color:var(--terra);cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="kicker">Strategy Dashboard · Tourism Services</div>
+    <h1>Tourism Growth Consulting — Build Plan</h1>
+    <div class="positioning ed" id="positioning" contenteditable="true"></div>
+    <div class="progress-block">
+      <div class="progress-label"><span>Roadmap progress</span><span id="pct">0% complete</span></div>
+      <div class="bar"><i id="fill"></i></div>
+    </div>
+  </div>
+</header>
+
+<nav><div class="tabs">
+  <button class="tab active" data-t="overview">Overview</button>
+  <button class="tab" data-t="services">Services</button>
+  <button class="tab" data-t="swot">Strengths &amp; Weaknesses</button>
+  <button class="tab" data-t="branding">Branding</button>
+  <button class="tab" data-t="roadmap">Roadmap</button>
+</div></nav>
+
+<div class="wrap">
+<div class="hint" style="margin-top:16px">✏️ Everything is editable — tap any text to change it. Use <b>×</b> to remove an item and <b>+ Add</b> buttons to add new ones. Changes save automatically in this browser.</div>
+
+<section class="panel active" id="overview">
+  <div class="grid g2" id="ov-cards"></div>
+  <button class="addbtn" id="ov-add">+ Add overview card</button>
+  <div class="note-compliance">⚖️ <b>Compliance:</b> <span class="ed" id="ov-compliance" contenteditable="true"></span></div>
+  <div class="notes-label">Notes</div>
+  <textarea class="notes" data-n="overview" placeholder="Jot ideas…"></textarea>
+</section>
+
+<section class="panel" id="services">
+  <div id="svc-tiers"></div>
+  <button class="addbtn" id="svc-addtier">+ Add tier</button>
+  <div class="notes-label">Notes</div>
+  <textarea class="notes" data-n="services" placeholder="Pricing ideas, packaging…"></textarea>
+</section>
+
+<section class="panel" id="swot">
+  <p style="font-size:12.5px;color:var(--muted);margin-bottom:12px">Viewed from the perspective of a potential client.</p>
+  <div class="grid g2">
+    <div class="card swot-s">
+      <h3>✓ Why a client WOULD hire me</h3>
+      <div id="sw-s"></div>
+      <button class="addbtn" data-add="strength">+ Add strength</button>
+    </div>
+    <div class="card swot-w">
+      <h3>✗ Why a client WOULDN'T contact me</h3>
+      <div id="sw-w"></div>
+      <button class="addbtn" data-add="weakness">+ Add weakness &amp; fix</button>
+    </div>
+  </div>
+  <div class="notes-label">Notes</div>
+  <textarea class="notes" data-n="swot" placeholder="Objection-handling ideas…"></textarea>
+</section>
+
+<section class="panel" id="branding">
+  <div class="grid g2">
+    <div class="card">
+      <h3>Strategy</h3>
+      <p class="ed" id="br-strategy" contenteditable="true"></p>
+      <p style="margin-top:12px;font-size:12px;font-weight:700;color:var(--muted)">NAME SHORTLIST <span style="font-weight:400">(tap ★ to mark favorite)</span></p>
+      <div id="br-names" style="margin-top:6px"></div>
+      <button class="addbtn" id="br-addname">+ Add name idea</button>
+    </div>
+    <div class="card">
+      <h3>Brand Foundation</h3>
+      <div id="br-found"></div>
+      <button class="addbtn" id="br-addfound">+ Add row</button>
+      <h3 style="margin-top:16px">Brand Checklist</h3>
+      <div id="br-checks"></div>
+      <button class="addbtn" id="br-addcheck">+ Add checklist item</button>
+    </div>
+  </div>
+  <div class="notes-label">Notes</div>
+  <textarea class="notes" data-n="branding" placeholder="Name ideas, tone of voice…"></textarea>
+</section>
+
+<section class="panel" id="roadmap">
+  <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px">Tap a status pill to cycle: To Do → In Progress → Done.</p>
+  <div id="rm-phases"></div>
+  <button class="addbtn" id="rm-addphase">+ Add phase</button>
+  <div class="notes-label">Notes</div>
+  <textarea class="notes" data-n="roadmap" placeholder="Blockers, deadlines…"></textarea>
+</section>
+
+<footer>Solo tourism-marketing venture · Rome, Italy · Progress saves in this browser · <button id="reset">Reset to original content</button></footer>
+</div>
+
+<script>
+(function(){
+  var KEY = 'tgd_v2';
+  var LS = null;
+  try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); LS = localStorage; } catch(e){}
+
+  var DEFAULTS = {
+    positioning: '"I help small tour operators and travel businesses get more bookings — through paid ads, OTA optimization, and B2B partnerships."',
+    compliance: 'operating via prestazione occasionale (~€5,000/year limit). Consult a commercialista once revenue becomes regular — Partita IVA decision is in Roadmap Phase 4.',
+    ovCards: [
+      {t:'The Business', b:'Founder: solo freelance marketer, based in Rome, Italy. Model: informal service provider — prestazione occasionale (no registered company yet). Clients: small & mid-size tourism businesses anywhere (remote-first) — tour operators, activity providers, DMCs.'},
+      {t:'Unique Angle', b:'I currently work inside a tour operator — partnership manager role covering OTA management, hotel partnerships, and B2B outreach to US travel agencies. I know the operator’s side, not just the marketer’s side.'},
+      {t:'Proof Points', b:'4+ years PPC experience · €1M+ annual ad spend managed · Cascade Travel: 55% conversion increase · Kron Tours: Google Ads support · Based in Rome — the heart of world tourism.'},
+      {t:'Open Question', b:'Does my business partner join? (Architecture graduate, ICOMOS + ICOM member, future licensed guide.) If yes → unlocks Tour Design and Map Illustration services.'}
+    ],
+    tiers: [
+      {label:'Core Services — lead offers · deliverable today, provable, sellable remotely', color:'#c96a4a', items:[
+        {t:'1 · Paid Media Ads', d:'Google Ads + Meta for tourism businesses — booking campaigns and lead generation.', tag:'Core'},
+        {t:'2 · Business Development / OTA Optimization', d:'OTA setup & optimization (GetYourGuide, Viator, etc.), B2B partnership building, outreach systems (Apollo, Brevo, Saleshandy).', tag:'Core'}
+      ]},
+      {label:'Lead Magnet / Door-Opener — design in progress', color:'#2e7d5b', items:[
+        {t:'3 · Free OTA & Ads Audit', d:'Free mini-audit of a prospect’s OTA listings and ad accounts; converts into paid services. To define: what it includes (OTA listing score, ad account quick review, 3 quick wins), delivery format (PDF or Loom?), conversion path (audit → call → starter package).', tag:'Develop this'}
+      ]},
+      {label:'Add-On Services — offer after first clients', color:'#b07a1f', items:[
+        {t:'4 · Content Creation', d:'Social content, OTA listing content, ad creatives.', tag:'Weak proof — build portfolio'},
+        {t:'5 · Tour / Product Design', d:'Consulting on building sellable tour products.', tag:'Skill in development'},
+        {t:'6 · OTA Dependency Checkup', d:'Productized fixed-price mini-service, tourism-specific language.', tag:'Productize'}
+      ]},
+      {label:'Parked — revisit later', color:'#b6c2cc', items:[
+        {t:'7 · Event Design', d:'Hard to deliver remotely, no proof yet.', tag:'On hold'},
+        {t:'8 · Map Illustration', d:'Only if the architect partner joins.', tag:'On hold'}
+      ]}
+    ],
+    strengths: [
+      'Insider experience — works inside a tour operator right now (rare among marketers)',
+      'Rome-based — instant tourism credibility',
+      'Real numbers — 55% conversion lift, €1M+ ad spend managed',
+      'Small and personal — direct access to the person doing the work, lower cost than agencies'
+    ],
+    weaknesses: [
+      {w:'No visible proof (no site, no case studies)', f:'Fix: build case study PDFs + one-page site'},
+      {w:'One-person informal operation, continuity risk', f:'Fix: clear handover/documentation promise, personal brand trust'},
+      {w:'Cost fear (fee + ad budget)', f:'Fix: free audit entry point, small starter packages'},
+      {w:'No measurable promise', f:'Fix: performance-linked pricing option / concrete outcome-based offer'},
+      {w:'Generic marketing language', f:'Fix: tourism-specific offers and vocabulary (seasonality, OTA commissions, direct bookings, TripAdvisor ranking)'}
+    ],
+    brStrategy: 'Personal brand first — founder’s name + title “Tourism Growth Consultant”, with a brand wrapper name for site/newsletter. Personality: practical, insider, results-first.',
+    names: [
+      {n:'The Tour Marketer — owns the category, SEO-friendly', fav:true},
+      {n:'Bookings & Beyond', fav:false},
+      {n:'Via Roma Growth', fav:false},
+      {n:'Trattoria Digital', fav:false}
+    ],
+    foundation: [
+      {k:'Who', v:'Small/mid tourism businesses worldwide'},
+      {k:'Problem', v:'OTA dependency and 20–25% commissions, no direct bookings'},
+      {k:'Promise', v:'More bookings, less OTA dependency'},
+      {k:'Proof', v:'Real campaign results + insider operator experience'}
+    ],
+    brChecks: [
+      {t:'Final name chosen', done:false},
+      {t:'Simple visual identity', done:false},
+      {t:'LinkedIn profile optimized', done:false},
+      {t:'Tone of voice defined', done:false}
+    ],
+    phases: [
+      {title:'Phase 1 — Foundation', steps:[
+        {t:'Finalize service list and pricing for the 2 core services', s:'todo'},
+        {t:'Choose name + set up personal brand (LinkedIn as the face)', s:'todo'},
+        {t:'Write 2–3 case studies from existing work (Cascade Travel, Kron Tours, current OTA/partnership work)', s:'todo'},
+        {t:'Build one-page site OR polished LinkedIn + PDF service deck', s:'todo'}
+      ]},
+      {title:'Phase 2 — Offer', steps:[
+        {t:'Design the Free OTA & Ads Audit (contents, delivery template, conversion path)', s:'todo'},
+        {t:'Create the "OTA Dependency Checkup" productized offer', s:'todo'}
+      ]},
+      {title:'Phase 3 — Outreach', steps:[
+        {t:'Build prospect list (small tour operators worldwide — Apollo)', s:'todo'},
+        {t:'Write 3-email outreach sequence leading with the free audit', s:'todo'},
+        {t:'Launch outreach (Saleshandy, 30–50/day, recipient timezone sending)', s:'todo'}
+      ]},
+      {title:'Phase 4 — Delivery & Growth', steps:[
+        {t:'Deliver first audits → convert to paid clients', s:'todo'},
+        {t:'Collect testimonials and new case studies', s:'todo'},
+        {t:'Revisit: Partita IVA / registration decision, partner joining, add-on services launch', s:'todo'}
+      ]}
+    ],
+    notes: {overview:'', services:'', swot:'', branding:'', roadmap:''}
+  };
+
+  var state;
+  try { state = LS && LS.getItem(KEY) ? JSON.parse(LS.getItem(KEY)) : null; } catch(e){ state = null; }
+  if (!state) state = JSON.parse(JSON.stringify(DEFAULTS));
+
+  function save(){ if (LS) LS.setItem(KEY, JSON.stringify(state)); }
+  function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function bindEd(el, obj, key, after){
+    el.addEventListener('blur', function(){
+      obj[key] = el.textContent.trim();
+      save();
+      if (after) after();
+    });
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' && !e.shiftKey && el.dataset.single === '1'){ e.preventDefault(); el.blur(); }
+    });
+  }
+
+  // Header positioning + compliance
+  var posEl = document.getElementById('positioning');
+  posEl.textContent = state.positioning;
+  bindEd(posEl, state, 'positioning');
+  var compEl = document.getElementById('ov-compliance');
+  compEl.textContent = state.compliance;
+  bindEd(compEl, state, 'compliance');
+
+  // Tabs
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.classList.remove('active'); });
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+      t.classList.add('active');
+      document.getElementById(t.dataset.t).classList.add('active');
+      window.scrollTo({top:0});
+    });
+  });
+
+  // ---------- OVERVIEW ----------
+  function renderOverview(){
+    var c = document.getElementById('ov-cards');
+    c.innerHTML = '';
+    state.ovCards.forEach(function(card, i){
+      var div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = '<button class="del" title="Remove card">×</button>' +
+        '<h3 class="ed" contenteditable="true" data-single="1">' + esc(card.t) + '</h3>' +
+        '<p class="ed" contenteditable="true">' + esc(card.b) + '</p>';
+      div.querySelector('.del').addEventListener('click', function(){
+        state.ovCards.splice(i,1); save(); renderOverview();
+      });
+      bindEd(div.querySelector('h3'), card, 't');
+      bindEd(div.querySelector('p'), card, 'b');
+      c.appendChild(div);
+    });
+  }
+  document.getElementById('ov-add').addEventListener('click', function(){
+    state.ovCards.push({t:'New card', b:'Describe it…'}); save(); renderOverview();
+  });
+
+  // ---------- SERVICES ----------
+  function renderServices(){
+    var c = document.getElementById('svc-tiers');
+    c.innerHTML = '';
+    state.tiers.forEach(function(tier, ti){
+      var div = document.createElement('div');
+      div.className = 'card tier';
+      div.style.borderLeftColor = tier.color || '#2b6a9e';
+      var html = '<button class="del" title="Remove tier">×</button>' +
+        '<div class="tierlabel ed" contenteditable="true" data-single="1">' + esc(tier.label) + '</div>';
+      tier.items.forEach(function(it){
+        html += '<div class="svc">' +
+          '<button class="del" title="Remove service">×</button>' +
+          '<h4 class="ed" contenteditable="true" data-single="1">' + esc(it.t) + '</h4>' +
+          '<p class="ed" contenteditable="true">' + esc(it.d) + '</p>' +
+          '<span class="tag ed" contenteditable="true" data-single="1">' + esc(it.tag) + '</span>' +
+          '</div>';
+      });
+      html += '<button class="addbtn">+ Add service</button>';
+      div.innerHTML = html;
+
+      div.querySelector('.del').addEventListener('click', function(){
+        if (confirm('Remove this whole tier and its services?')) { state.tiers.splice(ti,1); save(); renderServices(); }
+      });
+      bindEd(div.querySelector('.tierlabel'), tier, 'label');
+      var svcEls = div.querySelectorAll('.svc');
+      svcEls.forEach(function(sEl, ii){
+        var it = tier.items[ii];
+        sEl.querySelector('.del').addEventListener('click', function(){
+          tier.items.splice(ii,1); save(); renderServices();
+        });
+        bindEd(sEl.querySelector('h4'), it, 't');
+        bindEd(sEl.querySelector('p'), it, 'd');
+        bindEd(sEl.querySelector('.tag'), it, 'tag');
+      });
+      div.querySelector('.addbtn').addEventListener('click', function(){
+        tier.items.push({t:'New service', d:'Describe the service…', tag:'New'}); save(); renderServices();
+      });
+      c.appendChild(div);
+    });
+  }
+  document.getElementById('svc-addtier').addEventListener('click', function(){
+    state.tiers.push({label:'New tier', color:'#2b6a9e', items:[]}); save(); renderServices();
+  });
+
+  // ---------- SWOT ----------
+  function renderSwot(){
+    var s = document.getElementById('sw-s');
+    s.innerHTML = '';
+    state.strengths.forEach(function(txt, i){
+      var row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = '<div class="body ed" contenteditable="true">' + esc(txt) + '</div>' +
+        '<button class="del inline" title="Remove">×</button>';
+      row.querySelector('.body').addEventListener('blur', function(){
+        state.strengths[i] = this.textContent.trim(); save();
+      });
+      row.querySelector('.del').addEventListener('click', function(){
+        state.strengths.splice(i,1); save(); renderSwot();
+      });
+      s.appendChild(row);
+    });
+    var w = document.getElementById('sw-w');
+    w.innerHTML = '';
+    state.weaknesses.forEach(function(item, i){
+      var row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = '<div style="flex:1"><div class="body ed" contenteditable="true" style="font-weight:600">' + esc(item.w) + '</div>' +
+        '<div class="fix">→ <span class="ed" contenteditable="true">' + esc(item.f) + '</span></div></div>' +
+        '<button class="del inline" title="Remove">×</button>';
+      bindEd(row.querySelector('.body'), item, 'w');
+      bindEd(row.querySelector('.fix .ed'), item, 'f');
+      row.querySelector('.del').addEventListener('click', function(){
+        state.weaknesses.splice(i,1); save(); renderSwot();
+      });
+      w.appendChild(row);
+    });
+  }
+  document.querySelector('[data-add="strength"]').addEventListener('click', function(){
+    state.strengths.push('New strength…'); save(); renderSwot();
+  });
+  document.querySelector('[data-add="weakness"]').addEventListener('click', function(){
+    state.weaknesses.push({w:'New weakness…', f:'Fix: …'}); save(); renderSwot();
+  });
+
+  // ---------- BRANDING ----------
+  var brStrategyEl = document.getElementById('br-strategy');
+  brStrategyEl.textContent = state.brStrategy;
+  bindEd(brStrategyEl, state, 'brStrategy');
+
+  function renderNames(){
+    var c = document.getElementById('br-names');
+    c.innerHTML = '';
+    state.names.forEach(function(item, i){
+      var div = document.createElement('div');
+      div.className = 'brandname' + (item.fav ? ' fav' : '');
+      div.innerHTML = '<span class="star" title="Mark favorite">★</span>' +
+        '<span class="nm ed" contenteditable="true" data-single="1">' + esc(item.n) + '</span>' +
+        '<button class="del inline" title="Remove">×</button>';
+      div.querySelector('.star').addEventListener('click', function(){
+        item.fav = !item.fav; save(); renderNames();
+      });
+      bindEd(div.querySelector('.nm'), item, 'n');
+      div.querySelector('.del').addEventListener('click', function(){
+        state.names.splice(i,1); save(); renderNames();
+      });
+      c.appendChild(div);
+    });
+  }
+  document.getElementById('br-addname').addEventListener('click', function(){
+    state.names.push({n:'New name idea', fav:false}); save(); renderNames();
+  });
+
+  function renderFoundation(){
+    var c = document.getElementById('br-found');
+    c.innerHTML = '';
+    state.foundation.forEach(function(item, i){
+      var div = document.createElement('div');
+      div.className = 'kv-row';
+      div.innerHTML = '<span class="k ed" contenteditable="true" data-single="1">' + esc(item.k) + '</span>' +
+        '<span class="v ed" contenteditable="true">' + esc(item.v) + '</span>' +
+        '<button class="del inline" title="Remove">×</button>';
+      bindEd(div.querySelector('.k'), item, 'k');
+      bindEd(div.querySelector('.v'), item, 'v');
+      div.querySelector('.del').addEventListener('click', function(){
+        state.foundation.splice(i,1); save(); renderFoundation();
+      });
+      c.appendChild(div);
+    });
+  }
+  document.getElementById('br-addfound').addEventListener('click', function(){
+    state.foundation.push({k:'Key', v:'Value…'}); save(); renderFoundation();
+  });
+
+  function renderChecks(){
+    var c = document.getElementById('br-checks');
+    c.innerHTML = '';
+    state.brChecks.forEach(function(item, i){
+      var div = document.createElement('div');
+      div.className = 'check' + (item.done ? ' done' : '');
+      div.innerHTML = '<div class="box">✓</div>' +
+        '<div class="txt ed" contenteditable="true" data-single="1">' + esc(item.t) + '</div>' +
+        '<button class="del inline" title="Remove">×</button>';
+      div.querySelector('.box').addEventListener('click', function(){
+        item.done = !item.done; save(); renderChecks();
+      });
+      bindEd(div.querySelector('.txt'), item, 't');
+      div.querySelector('.del').addEventListener('click', function(){
+        state.brChecks.splice(i,1); save(); renderChecks();
+      });
+      c.appendChild(div);
+    });
+  }
+  document.getElementById('br-addcheck').addEventListener('click', function(){
+    state.brChecks.push({t:'New checklist item', done:false}); save(); renderChecks();
+  });
+
+  // ---------- ROADMAP ----------
+  var ORDER = ['todo','prog','done'];
+  var LABEL = {todo:'To Do', prog:'In Progress', done:'Done'};
+
+  function refreshProgress(){
+    var total = 0, done = 0;
+    state.phases.forEach(function(ph){
+      ph.steps.forEach(function(st){ total++; if (st.s === 'done') done++; });
+    });
+    var pct = total ? Math.round(done/total*100) : 0;
+    document.getElementById('pct').textContent = pct + '% complete';
+    document.getElementById('fill').style.width = pct + '%';
+  }
+
+  function renderRoadmap(){
+    var c = document.getElementById('rm-phases');
+    c.innerHTML = '';
+    var num = 0;
+    state.phases.forEach(function(ph, pi){
+      var doneCount = ph.steps.filter(function(s){ return s.s === 'done'; }).length;
+      var div = document.createElement('div');
+      div.className = 'card phase';
+      var html = '<div class="phase-h">' +
+        '<h3 class="ed" contenteditable="true" data-single="1">' + esc(ph.title) + '</h3>' +
+        '<span class="count">' + doneCount + '/' + ph.steps.length + ' done</span>' +
+        '<button class="del inline" title="Remove phase">×</button></div>';
+      ph.steps.forEach(function(st){
+        num++;
+        html += '<div class="step' + (st.s === 'done' ? ' s-done' : '') + '">' +
+          '<div class="num">' + num + '</div>' +
+          '<div class="txt ed" contenteditable="true">' + esc(st.t) + '</div>' +
+          '<button class="status ' + st.s + '">' + LABEL[st.s] + '</button>' +
+          '<button class="del inline" title="Remove step">×</button></div>';
+      });
+      html += '<button class="addbtn">+ Add step</button>';
+      div.innerHTML = html;
+
+      bindEd(div.querySelector('.phase-h h3'), ph, 'title');
+      div.querySelector('.phase-h .del').addEventListener('click', function(){
+        if (confirm('Remove this phase and its steps?')) { state.phases.splice(pi,1); save(); renderRoadmap(); }
+      });
+      var stepEls = div.querySelectorAll('.step');
+      stepEls.forEach(function(sEl, si){
+        var st = ph.steps[si];
+        bindEd(sEl.querySelector('.txt'), st, 't');
+        sEl.querySelector('.status').addEventListener('click', function(){
+          st.s = ORDER[(ORDER.indexOf(st.s) + 1) % 3]; save(); renderRoadmap();
+        });
+        sEl.querySelector('.del').addEventListener('click', function(){
+          ph.steps.splice(si,1); save(); renderRoadmap();
+        });
+      });
+      div.querySelector('.addbtn').addEventListener('click', function(){
+        ph.steps.push({t:'New step…', s:'todo'}); save(); renderRoadmap();
+      });
+      c.appendChild(div);
+    });
+    refreshProgress();
+  }
+  document.getElementById('rm-addphase').addEventListener('click', function(){
+    state.phases.push({title:'New phase', steps:[]}); save(); renderRoadmap();
+  });
+
+  // ---------- NOTES ----------
+  document.querySelectorAll('textarea.notes').forEach(function(ta){
+    var key = ta.dataset.n;
+    ta.value = state.notes[key] || '';
+    ta.addEventListener('input', function(){ state.notes[key] = ta.value; save(); });
+  });
+
+  // ---------- RESET ----------
+  document.getElementById('reset').addEventListener('click', function(){
+    if (confirm('Reset everything to the original content? Your edits will be lost.')){
+      state = JSON.parse(JSON.stringify(DEFAULTS));
+      save();
+      location.reload();
+    }
+  });
+
+  renderOverview();
+  renderServices();
+  renderSwot();
+  renderNames();
+  renderFoundation();
+  renderChecks();
+  renderRoadmap();
+})();
+</script>
+</body>
+</html>
